@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Roadside assistance across India. Request a mechanic, towing, battery help, fuel delivery, or tyre support and pay on-site."
+    />
+    <title>RoadRescue | Roadside assistance, made simple</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a href="index.html" class="brand" aria-label="RoadRescue home">
+          <span class="brand-mark">R</span>
+          <span>roadrescue<span class="brand-period">.</span></span>
+        </a>
+
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="services.html">Services</a>
+          <a href="#process">How it works</a>
+          <a href="#pricing">Pricing</a>
+          <a href="tracking.html">Track request</a>
+          <a href="portal.html">Partner portal</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a class="nav-link" href="tel:+919876543210">Call 24/7</a>
+          <a class="btn btn-primary" href="booking.html">Get roadside help</a>
+        </div>
+
+        <button class="menu-toggle" type="button" aria-label="Toggle menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <span class="eyebrow"><span class="eyebrow-dot"></span> Roadside help, wherever the road takes you</span>
+            <h1>When the road stops, <span>we show up.</span></h1>
+            <p>
+              A flat tyre, a silent battery, or an unexpected breakdown. Tell us what happened and we’ll help you find the right local support.
+            </p>
+
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="booking.html">Request roadside help <span aria-hidden="true">↗</span></a>
+              <a class="btn btn-secondary" href="services.html">Explore services</a>
+            </div>
+
+            <div class="payment-badges" aria-label="Accepted payment methods">
+              <span>UPI</span>
+              <span>Cash</span>
+              <span>Card</span>
+              <span>On-site payment</span>
+            </div>
+
+            <ul class="trust-points" aria-label="Customer trust points">
+              <li>24/7 dispatch</li>
+              <li>Local support network</li>
+              <li>Upfront estimates</li>
+            </ul>
+          </div>
+
+          <div class="hero-panel" aria-label="Roadside assistance overview">
+            <div class="alert-card">
+              <div class="alert-top">
+                <span class="status-dot"></span>
+                <span>Roadside support</span>
+              </div>
+              <strong>Help is one request away.</strong>
+              <small>Share your location to see an ETA preview.</small>
+            </div>
+
+            <div class="info-card">
+              <div class="mini-stat">
+                <span>24 / 7</span>
+                <small>request assistance</small>
+              </div>
+              <div class="mini-stat">
+                <span>UPI</span>
+                <small>pay on-site</small>
+              </div>
+            </div>
+
+            <div class="feature-phone">
+              <div class="phone-bar"></div>
+              <div class="phone-content">
+                <p>Emergency assistance</p>
+                <ul>
+                  <li>Battery jump start</li>
+                  <li>Flat tyre support</li>
+                  <li>Fuel delivery</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="quick-actions section-pad">
+        <div class="container">
+          <div class="section-heading center">
+            <span class="eyebrow red">Quick actions</span>
+            <h2>Need help right now?</h2>
+          </div>
+
+          <div class="action-grid">
+            <button class="action-card quick-action-btn" type="button" data-issue="Dead battery">
+              <span class="icon">🔋</span>
+              <strong>Jump Start</strong>
+              <small>Dead battery</small>
+            </button>
+            <button class="action-card quick-action-btn" type="button" data-issue="Flat tire">
+              <span class="icon">🛞</span>
+              <strong>Flat Tire</strong>
+              <small>On-road tire fix</small>
+            </button>
+            <button class="action-card quick-action-btn" type="button" data-issue="Fuel delivery">
+              <span class="icon">⛽</span>
+              <strong>Fuel Delivery</strong>
+              <small>Run out of gas</small>
+            </button>
+            <button class="action-card quick-action-btn" type="button" data-issue="Lockout">
+              <span class="icon">🔑</span>
+              <strong>Lockout</strong>
+              <small>Car key access</small>
+            </button>
+            <button class="action-card quick-action-btn" type="button" data-issue="Towing">
+              <span class="icon">🚚</span>
+              <strong>Towing</strong>
+              <small>Vehicle transport</small>
+            </button>
+            <button class="action-card quick-action-btn" type="button" data-issue="Minor repair">
+              <span class="icon">🛠️</span>
+              <strong>Minor Repairs</strong>
+              <small>Quick fixes</small>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="services" class="services section-pad">
+        <div class="container">
+          <div class="section-heading">
+            <span class="eyebrow red">Our services</span>
+            <h2>Roadside support built for every emergency.</h2>
+          </div>
+
+          <div class="service-grid">
+            <article class="service-card">
+              <div class="service-icon">🚑</div>
+              <h3>Emergency Towing</h3>
+              <p>Safe transport to the nearest approved repair center or your home address.</p>
+            </article>
+            <article class="service-card">
+              <div class="service-icon">🔋</div>
+              <h3>Battery Rescue</h3>
+              <p>Jump-starts, battery diagnostics, and replacement support when your car won't start.</p>
+            </article>
+            <article class="service-card">
+              <div class="service-icon">🧰</div>
+              <h3>On-Site Repairs</h3>
+              <p>Minor repairs for alternators, belts, fuses, and other common roadside faults.</p>
+            </article>
+            <article class="service-card">
+              <div class="service-icon">🔑</div>
+              <h3>Lockout Assistance</h3>
+              <p>Professional access help for locked vehicles without damaging your doors or locks.</p>
+            </article>
+            <article class="service-card">
+              <div class="service-icon">🛞</div>
+              <h3>Flat Tire Support</h3>
+              <p>Inflation, patching, and tire replacement for roadside emergencies.</p>
+            </article>
+            <article class="service-card">
+              <div class="service-icon">⛽</div>
+              <h3>Fuel Delivery</h3>
+              <p>Fast fuel top-up service so you can get back on the road without waiting for help.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="process" class="process section-pad alt-bg">
+        <div class="container">
+          <div class="section-heading center">
+            <span class="eyebrow red">Simple process</span>
+            <h2>How we get you moving again.</h2>
+          </div>
+
+          <div class="process-grid">
+            <div class="step-card">
+              <span class="step-number">01</span>
+              <h3>Call or tap for help</h3>
+              <p>Tell us your location, vehicle type, and the issue so we can dispatch the right support team.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-number">02</span>
+              <h3>Review your request</h3>
+              <p>Use the tracker to review the details you submitted. Provider confirmation and live dispatch need a service integration.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-number">03</span>
+              <h3>Confirm the estimate</h3>
+              <p>Ask the service provider to confirm availability, the full estimate, and the safe next steps before work begins.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-number">04</span>
+              <h3>Pay on-site</h3>
+              <p>Pay the provider by UPI, cash, or card after you approve the work and final amount.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tracking-promo section-pad">
+        <div class="container tracking-promo-grid">
+          <div>
+            <span class="eyebrow red">A clearer picture</span>
+            <h2>Know where help is headed.</h2>
+            <p>Share your location to see a map, your request details, and an estimated arrival window. Tracking is shown as a demo until a real dispatch service is connected.</p>
+            <a class="text-link" href="tracking.html">Open request tracker <span aria-hidden="true">→</span></a>
+          </div>
+          <a class="map-preview" href="tracking.html" aria-label="Open the request tracker map">
+            <span class="map-road map-road-one"></span>
+            <span class="map-road map-road-two"></span>
+            <span class="map-park"></span>
+            <span class="map-marker map-marker-user">You</span>
+            <span class="map-marker map-marker-tech">Tech</span>
+            <span class="map-preview-label"><span class="status-dot"></span> Location preview <small>Open tracker</small></span>
+          </a>
+        </div>
+      </section>
+
+      <section id="pricing" class="pricing section-pad">
+        <div class="container">
+          <div class="section-heading center">
+            <span class="eyebrow red">Pricing</span>
+            <h2>Indicative prices, confirmed before work.</h2>
+            <p class="pricing-disclaimer">Starting prices are illustrative. Distance, parts, fuel, access, and local availability can change the final quote.</p>
+          </div>
+
+          <div class="pricing-grid">
+            <article class="price-card">
+              <div class="plan-tag">Starter</div>
+              <h3>Roadside Lite</h3>
+              <div class="price">₹499<span>/visit</span></div>
+              <p class="payment-note">Pay by UPI, cash, or card on-site after service.</p>
+              <ul>
+                <li>Battery jump start</li>
+                <li>Basic tire assistance</li>
+                <li>Tow up to 10 km</li>
+                <li>Priority dispatch</li>
+              </ul>
+              <button class="btn btn-secondary full-width book-now-btn" type="button" data-issue="Dead battery">Book now</button>
+            </article>
+
+            <article class="price-card featured-plan">
+              <div class="plan-tag">Most popular</div>
+              <h3>Roadside Plus</h3>
+              <div class="price">₹999<span>/visit</span></div>
+              <p class="payment-note">UPI / cash / card accepted on arrival.</p>
+              <ul>
+                <li>Everything in Lite</li>
+                <li>Lockout support</li>
+                <li>Fuel delivery coordination</li>
+                <li>Extended towing coverage</li>
+              </ul>
+              <button class="btn btn-primary full-width book-now-btn" type="button" data-issue="Fuel delivery">Book now</button>
+            </article>
+
+            <article class="price-card">
+              <div class="plan-tag">Business</div>
+              <h3>Fleet Rescue</h3>
+              <div class="price">₹1,999<span>/visit</span></div>
+              <p class="payment-note">On-site payment via UPI, cash, or card.</p>
+              <ul>
+                <li>Multi-vehicle support</li>
+                <li>24/7 emergency desk</li>
+                <li>Dedicated route manager</li>
+                <li>Priority service windows</li>
+              </ul>
+              <button class="btn btn-secondary full-width book-now-btn" type="button" data-issue="Towing">Book now</button>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="reviews" class="testimonials section-pad alt-bg">
+        <div class="container">
+          <div class="section-heading center">
+            <span class="eyebrow red">Clear expectations</span>
+            <h2>Know what to confirm before help arrives.</h2>
+          </div>
+
+          <div class="testimonial-grid">
+            <article class="testimonial-card">
+              <div class="stars">01 · Estimate</div>
+              <p>Confirm the call-out fee, distance charges, parts, fuel, and any extra costs before approving the job.</p>
+              <div class="person">
+                <strong>Before work starts</strong>
+                <span>Agree on the full amount</span>
+              </div>
+            </article>
+            <article class="testimonial-card">
+              <div class="stars">02 · Availability</div>
+              <p>Service coverage and arrival time depend on your area, traffic, weather, and provider availability.</p>
+              <div class="person">
+                <strong>At your location</strong>
+                <span>Get confirmation from the provider</span>
+              </div>
+            </article>
+            <article class="testimonial-card">
+              <div class="stars">03 · Payment</div>
+              <p>Choose UPI, cash, or card on-site. This website does not collect an online payment.</p>
+              <div class="person">
+                <strong>After service</strong>
+                <span>Pay the confirmed final amount</span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" class="faq section-pad">
+        <div class="container faq-wrap">
+          <div class="section-heading">
+            <span class="eyebrow red">FAQ</span>
+            <h2>Common roadside questions.</h2>
+          </div>
+
+          <div class="faq-list">
+            <div class="faq-item active">
+              <button class="faq-question" type="button" aria-expanded="true">
+                How quickly can someone reach me?
+              </button>
+              <div class="faq-answer">
+                <p>Arrival time depends on your location, traffic, weather, and provider availability. Ask the provider to confirm an ETA; this demo cannot dispatch or provide a live arrival estimate.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" type="button" aria-expanded="false">
+                Do you cover towing and minor repairs?
+              </button>
+              <div class="faq-answer">
+                <p>Yes. We provide towing, battery jump starts, tire support, fuel delivery, lockout assistance, and many minor roadside repairs.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" type="button" aria-expanded="false">
+                Is your service available at night?
+              </button>
+              <div class="faq-answer">
+                <p>Service hours vary by provider and location. Confirm availability directly before relying on an arrival estimate.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" type="button" aria-expanded="false">
+                What payment methods do you accept?
+              </button>
+              <div class="faq-answer">
+                <p>This demo does not collect online payments. If booking with a local provider, confirm the full quote and available on-site methods before work begins.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="contact section-pad alt-bg">
+        <div class="container contact-grid">
+          <div class="contact-copy">
+            <span class="eyebrow red">Get help now</span>
+            <h2>Tell us where you are and we’ll take it from there.</h2>
+            <p>
+              Submit a demo request to see the details in the tracker. A real booking, live ETA, and provider updates require a connected dispatch service.
+            </p>
+
+            <div class="contact-list">
+              <div>
+                <strong>Call</strong>
+                <a href="tel:+919876543210">+91 98765 43210</a>
+              </div>
+              <div>
+                <strong>Email</strong>
+                <a href="mailto:help@roadrescuesos.in">help@roadrescuesos.in</a>
+              </div>
+              <div>
+                <strong>Hours</strong>
+                <span>Provider availability varies by location</span>
+              </div>
+            </div>
+          </div>
+
+          <form class="contact-form" id="contactForm">
+            <label>
+              Full name
+              <input type="text" name="name" placeholder="Your name" required />
+            </label>
+            <label>
+              Phone number
+              <input type="tel" name="phone" placeholder="+91 98765 43210" autocomplete="tel" required />
+            </label>
+            <label>
+              Vehicle issue
+              <select name="issue">
+                <option>Dead battery</option>
+                <option>Flat tire</option>
+                <option>Towing</option>
+                <option>Fuel delivery</option>
+                <option>Lockout</option>
+                <option>Other</option>
+              </select>
+            </label>
+            <label>
+              Location
+              <input type="text" name="location" placeholder="Area, city, or nearby landmark" required />
+            </label>
+            <label>
+              Message
+              <textarea name="message" rows="4" placeholder="Tell us what happened"></textarea>
+            </label>
+            <button class="btn btn-primary full-width" type="submit">Request assistance</button>
+            <p class="form-status" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-wrap">
+        <div>
+          <a href="index.html" class="brand footer-brand">
+            <span class="brand-mark">R</span>
+            <span>roadrescue<span class="brand-period">.</span></span>
+          </a>
+        </div>
+        <div class="footer-links">
+          <a href="services.html">Services</a>
+          <a href="booking.html">Book help</a>
+          <a href="tracking.html">Track request</a>
+          <a href="portal.html">Partner portal</a>
+          <a href="mailto:help@roadrescuesos.in">Contact</a>
+        </div>
+        <p>© <span id="year"></span> RoadRescue. On-site UPI, cash &amp; card.</p>
+      </div>
+    </footer>
+
+    <a class="whatsapp-fab" href="https://wa.me/919876543210?text=Hi%2C%20I%20need%20roadside%20assistance." target="_blank" rel="noopener noreferrer" aria-label="Chat with RoadRescue on WhatsApp">
+      <span class="whatsapp-icon" aria-hidden="true">◉</span><span>WhatsApp</span>
+    </a>
+  </body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RoadRescue admin and workshop partner portal." />
+    <title>Admin &amp; partner portal | RoadRescue</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="portal.css" />
+    <script src="portal.js" defer></script>
+  </head>
+  <body class="portal-body">
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a href="index.html" class="brand" aria-label="RoadRescue home"><span class="brand-mark">R</span><span>roadrescue<span class="brand-period">.</span></span></a>
+        <nav class="main-nav" aria-label="Main navigation"><a href="services.html">Services</a><a href="booking.html">Book help</a><a class="active" href="portal.html">Partner portal</a></nav>
+        <div class="nav-actions"><a class="nav-link" href="index.html">Back to site</a><span id="portalUserLabel" class="portal-user-label" hidden></span><button class="btn btn-primary" id="logoutButton" type="button" hidden>Sign out</button></div>
+        <button class="menu-toggle" type="button" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </div>
+    </header>
+
+    <main class="portal-main">
+      <div class="container portal-container">
+        <section class="portal-intro">
+          <span class="eyebrow"><span class="eyebrow-dot"></span> RoadRescue operations</span>
+          <h1>One workspace for roadside requests.</h1>
+          <p>Admins review requests, approve providers and subscriptions. Approved, subscribed workshops can accept jobs and manage their listings.</p>
+        </section>
+
+        <section class="portal-auth" id="authPanel" hidden>
+          <div class="portal-auth-aside">
+            <span class="portal-kicker">SECURE PORTAL</span>
+            <h2 id="authAsideTitle">Welcome back.</h2>
+            <p id="authAsideCopy">Sign in to manage requests and workshop operations.</p>
+            <div class="portal-access-note"><strong>Vendor access</strong><span>Workshop listings are public only while the vendor is approved and has an active subscription.</span></div>
+          </div>
+          <div class="portal-auth-panel">
+            <div id="setupPanel" hidden>
+              <div class="portal-form-heading"><span class="portal-kicker">FIRST-TIME SETUP</span><h2>Create the administrator</h2><p>This one-time setup is only available while no administrator exists.</p></div>
+              <form id="setupForm" class="portal-form">
+                <label>Admin name<input name="name" autocomplete="name" required maxlength="100" /></label>
+                <label>Admin email<input name="email" type="email" autocomplete="email" required maxlength="254" /></label>
+                <label>Password <span class="field-hint">At least 12 characters</span><input name="password" type="password" autocomplete="new-password" minlength="12" required /></label>
+                <button class="btn btn-primary full-width" type="submit">Create admin account</button>
+                <p class="portal-status" aria-live="polite"></p>
+              </form>
+            </div>
+
+            <div id="authFormsPanel">
+              <div class="portal-tabs" role="tablist" aria-label="Portal access">
+                <button class="portal-tab is-active" type="button" role="tab" aria-selected="true" data-auth-tab="login">Sign in</button>
+                <button class="portal-tab" type="button" role="tab" aria-selected="false" data-auth-tab="enroll">Enroll workshop</button>
+              </div>
+              <form id="loginForm" class="portal-form" data-auth-form="login">
+                <div class="portal-form-heading"><span class="portal-kicker">ADMIN OR VENDOR</span><h2>Sign in to continue</h2></div>
+                <label>Email<input name="email" type="email" autocomplete="username" required maxlength="254" /></label>
+                <label>Password<input name="password" type="password" autocomplete="current-password" required /></label>
+                <button class="btn btn-primary full-width" type="submit">Sign in</button>
+                <p class="portal-status" aria-live="polite"></p>
+              </form>
+
+              <form id="vendorEnrollForm" class="portal-form" data-auth-form="enroll" hidden>
+                <div class="portal-form-heading"><span class="portal-kicker">SERVICE PARTNER</span><h2>Enroll your workshop</h2><p>New vendors are reviewed by an administrator before they can accept jobs.</p></div>
+                <div class="portal-form-grid">
+                  <label>Contact name<input name="name" autocomplete="name" required maxlength="100" /></label>
+                  <label>Workshop name<input name="businessName" required maxlength="140" /></label>
+                  <label>Business email<input name="email" type="email" autocomplete="email" required maxlength="254" /></label>
+                  <label>Contact phone<input name="phone" type="tel" autocomplete="tel" required maxlength="24" /></label>
+                  <label>City<input name="city" required maxlength="100" /></label>
+                  <label>Workshop address<input name="address" required maxlength="240" /></label>
+                  <label class="form-span-two">Services offered<input name="services" placeholder="Towing, battery, tyres, repairs" maxlength="240" /></label>
+                  <label class="form-span-two">Workshop overview<textarea name="description" rows="3" maxlength="500" placeholder="Tell customers about your workshop"></textarea></label>
+                  <label class="form-span-two">Password <span class="field-hint">At least 10 characters</span><input name="password" type="password" autocomplete="new-password" minlength="10" required /></label>
+                </div>
+                <button class="btn btn-primary full-width" type="submit">Submit vendor application</button>
+                <p class="portal-status" aria-live="polite"></p>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section class="portal-dashboard" id="dashboardPanel" hidden>
+          <div class="dashboard-toolbar"><div><span class="portal-kicker" id="dashboardRole">PORTAL</span><h2 id="dashboardHeading">Dashboard</h2></div><button class="btn btn-secondary dashboard-refresh" id="refreshDashboardButton" type="button" title="Refresh dashboard">↻ <span>Refresh</span></button></div>
+          <p class="portal-status dashboard-global-status" id="dashboardStatus" aria-live="polite"></p>
+          <div id="adminDashboard" hidden>
+            <div class="portal-stats" id="adminStats"></div>
+            <section class="portal-section"><div class="portal-section-heading"><div><span class="portal-kicker">VENDOR ACCOUNTS</span><h3>Applications and partner details</h3></div></div><div id="adminVendors" class="portal-record-list"></div></section>
+            <section class="portal-section"><div class="portal-section-heading"><div><span class="portal-kicker">CUSTOMER DIRECTORY</span><h3>Client contacts and request history</h3></div></div><div id="adminClients" class="portal-record-list"></div></section>
+            <section class="portal-section"><div class="portal-section-heading"><div><span class="portal-kicker">WORKSHOP DIRECTORY</span><h3>Subscriptions and payment review</h3></div><p>Confirm payment outside this site before activating a plan.</p></div><div id="adminSubscriptions" class="portal-record-list"></div></section>
+            <section class="portal-section"><div class="portal-section-heading"><div><span class="portal-kicker">CUSTOMER REQUESTS</span><h3>All roadside jobs</h3></div></div><div id="adminJobs" class="portal-record-list"></div></section>
+          </div>
+
+          <div id="vendorDashboard" hidden>
+            <section class="vendor-status-banner" id="vendorStatusBanner"></section>
+            <section class="portal-section vendor-availability" id="vendorAvailabilityPanel"><div><span class="portal-kicker">JOB AVAILABILITY</span><strong id="vendorAvailabilityLabel">Offline</strong><p id="vendorAvailabilityHelp">Go online to receive requests from the local service network.</p></div><button class="btn btn-primary" id="vendorAvailabilityButton" type="button">Go online</button></section>
+            <p class="portal-status availability-status" id="availabilityStatus" aria-live="polite"></p>
+            <div class="vendor-dashboard-grid">
+              <div class="vendor-main-column">
+                <section class="portal-section"><div class="portal-section-heading"><div><span class="portal-kicker">WORKSHOP PROFILE</span><h3>Public listing details</h3></div></div>
+                  <form id="workshopForm" class="portal-form vendor-profile-form"><div class="portal-form-grid">
+                    <label>Workshop name<input name="businessName" required maxlength="140" /></label>
+                    <label>Contact phone<input name="phone" type="tel" required maxlength="24" /></label>
+                    <label>City<input name="city" required maxlength="100" /></label>
+                    <label>Workshop address<input name="address" required maxlength="240" /></label>
+                    <label class="form-span-two">Services offered<input name="services" maxlength="240" /></label>
+                    <label class="form-span-two">Workshop overview<textarea name="description" rows="3" maxlength="500"></textarea></label>
+                  </div><label class="listing-toggle"><input name="listingEnabled" type="checkbox" /><span>Show this workshop in the public directory when eligible</span></label><button class="btn btn-primary" type="submit">Save workshop profile</button><p class="portal-status" aria-live="polite"></p></form>
+                </section>
+                <section class="portal-section"><div class="portal-section-heading"><div><span class="portal-kicker">LOCAL REQUESTS</span><h3>Available roadside jobs</h3></div></div><div id="vendorJobs" class="portal-record-list"></div></section>
+              </div>
+              <aside class="vendor-side-column"><section class="portal-section subscription-panel"><span class="portal-kicker">WORKSHOP SUBSCRIPTION</span><h3 id="subscriptionTitle">Choose a listing plan</h3><p id="subscriptionDescription">Your listing and job acceptance are enabled after admin approval and subscription activation.</p><div id="subscriptionState"></div><div class="subscription-options"><button class="subscription-option" type="button" data-plan="starter"><strong>Starter</strong><span>₹499 / 30 days</span></button><button class="subscription-option" type="button" data-plan="growth"><strong>Growth</strong><span>₹999 / 30 days</span></button><button class="subscription-option" type="button" data-plan="pro"><strong>Pro</strong><span>₹1,999 / 30 days</span></button></div><p class="fine-print">Request a plan, then pay the provider/admin through your agreed offline method. An administrator activates the subscription after confirming payment. No payment is collected here.</p><p class="portal-status" id="subscriptionStatus" aria-live="polite"></p></section><section class="portal-section directory-state"><span class="portal-kicker">PUBLIC LISTING</span><strong id="listingEligibility">Checking eligibility…</strong><a class="text-link" href="services.html">View workshop directory <span aria-hidden="true">↗</span></a></section></aside>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer"><div class="container footer-wrap"><a href="index.html" class="brand footer-brand"><span class="brand-mark">R</span><span>roadrescue<span class="brand-period">.</span></span></a><div class="footer-links"><a href="services.html">Services</a><a href="booking.html">Book help</a><a href="tracking.html">Track request</a><a href="portal.html">Partner portal</a></div><p>© <span id="year"></span> RoadRescue. Admin and vendor access.</p></div></footer>
+  </body>
+</html>

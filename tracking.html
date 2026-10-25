@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="View your RoadRescue request details, location map, and estimated arrival preview." />
+    <title>Track request | RoadRescue</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="script.js" defer></script>
+  </head>
+  <body data-page="tracking">
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a href="index.html" class="brand" aria-label="RoadRescue home"><span class="brand-mark">R</span><span>roadrescue<span class="brand-period">.</span></span></a>
+        <nav class="main-nav" aria-label="Main navigation"><a href="services.html">Services</a><a href="index.html#pricing">Pricing</a><a class="active" href="tracking.html">Track request</a><a href="portal.html">Partner portal</a></nav>
+        <div class="nav-actions"><a class="nav-link" href="tel:+919876543210">+91 98765 43210</a><a class="btn btn-primary" href="booking.html">New request</a></div>
+        <button class="menu-toggle" type="button" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </div>
+    </header>
+
+    <main class="tracking-main">
+      <div class="container">
+        <div class="tracking-heading"><div><span class="eyebrow"><span class="eyebrow-dot"></span> Request tracker</span><h1>Your roadside request.</h1><p id="trackingSubheading">Your request summary and location preview appear here.</p></div><a class="btn btn-secondary" href="booking.html">＋ New request</a></div>
+        <div class="demo-notice"><strong>Local dispatch demo</strong><span>Request status updates from vendor actions. Vehicle position and ETA remain illustrative until a live dispatch/GPS provider is connected.</span></div>
+        <div class="assigned-workshop" id="assignedWorkshopCard" hidden><strong>Accepted by <span id="assignedWorkshop"></span></strong><a id="assignedWorkshopPhone" href="#" hidden></a></div>
+        <div class="tracking-layout">
+          <section class="tracking-map-column" aria-label="Location map">
+            <div id="trackingMap" class="tracking-map" role="application" aria-label="Map showing your location and a simulated technician location"></div>
+            <div class="map-legend"><span><i class="legend-dot legend-user"></i>Your location</span><span><i class="legend-dot legend-tech"></i>Demo technician</span><span id="mapLocationLabel">Map preview: Bengaluru</span></div>
+          </section>
+          <aside class="tracking-details">
+            <div class="eta-card"><span class="card-overline">ESTIMATED ARRIVAL · DEMO</span><div class="eta-value"><strong id="etaValue">18</strong><span>min</span></div><div class="eta-progress"><span id="etaProgress"></span></div><p id="etaCaption">Preview estimate. Actual availability and arrival time must be confirmed by a provider.</p></div>
+            <div class="request-card"><div class="request-card-heading"><div><span class="card-overline">REQUEST REFERENCE</span><strong id="requestReference">RR-DEMO</strong></div><span class="request-status-pill" id="requestStatus">Preview</span></div><dl><div><dt>Service</dt><dd id="requestIssue">Roadside assistance</dd></div><div><dt>Location</dt><dd id="requestLocation">Bengaluru map preview</dd></div><div><dt>Vehicle</dt><dd id="requestVehicle">Not provided</dd></div><div><dt>Payment</dt><dd id="requestPayment">Pay on-site</dd></div></dl><a id="whatsappRequestLink" class="btn btn-whatsapp full-width" href="https://wa.me/919876543210?text=Hi%2C%20I%20need%20roadside%20assistance." target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a></div>
+            <div class="tracking-timeline"><span class="card-overline">REQUEST STATUS</span><ol><li class="timeline-step is-complete"><span></span><div><strong>Request created</strong><small>Saved to the local service</small></div></li><li class="timeline-step is-current"><span></span><div><strong>Waiting for a workshop</strong><small>A subscribed vendor can accept this request</small></div></li><li class="timeline-step"><span></span><div><strong>Workshop en route</strong><small>Arrival estimate is not live</small></div></li></ol></div>
+            <button class="btn btn-secondary full-width" id="refreshLocationButton" type="button"><span aria-hidden="true">⌖</span> Update my location</button>
+          </aside>
+        </div>
+        <p class="map-attribution">Map data © OpenStreetMap contributors. Demo service and location details are not a live dispatch.</p>
+      </div>
+    </main>
+
+    <footer class="site-footer"><div class="container footer-wrap"><a href="index.html" class="brand footer-brand"><span class="brand-mark">R</span><span>roadrescue<span class="brand-period">.</span></span></a><div class="footer-links"><a href="services.html">Services</a><a href="booking.html">Book help</a><a href="tracking.html">Track request</a><a href="portal.html">Partner portal</a><a href="mailto:help@roadrescuesos.in">Contact</a></div><p>© <span id="year"></span> RoadRescue. On-site UPI, cash &amp; card.</p></div></footer>
+    <a class="whatsapp-fab" href="https://wa.me/919876543210?text=Hi%2C%20I%20need%20roadside%20assistance." target="_blank" rel="noopener noreferrer" aria-label="Chat with RoadRescue on WhatsApp"><span class="whatsapp-icon" aria-hidden="true">◉</span><span>WhatsApp</span></a>
+  </body>
+</html>

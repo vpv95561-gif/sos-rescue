@@ -1,0 +1,676 @@
+.portal-body {
+  min-height: 100vh;
+  background: #f3f5f0;
+}
+
+.portal-body [hidden] {
+  display: none !important;
+}
+
+.portal-user-label {
+  max-width: 150px;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.75);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portal-main {
+  min-height: calc(100vh - 160px);
+  padding: 3.5rem 0 5rem;
+}
+
+.portal-container {
+  max-width: 1100px;
+}
+
+.portal-intro {
+  max-width: 660px;
+  margin-bottom: 2rem;
+}
+
+.portal-intro .eyebrow {
+  color: #365a40;
+  background: rgba(212, 241, 120, 0.36);
+}
+
+.portal-intro h1 {
+  margin: 0.9rem 0 0.6rem;
+  font: 700 clamp(2.2rem, 5vw, 3.5rem)/1.08 "Manrope", sans-serif;
+}
+
+.portal-intro p {
+  max-width: 610px;
+  margin: 0;
+  color: var(--muted);
+}
+
+.portal-auth {
+  display: grid;
+  grid-template-columns: 0.72fr 1.28fr;
+  overflow: hidden;
+  border: 1px solid #e2e8df;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 16px 44px rgba(20, 35, 31, 0.06);
+}
+
+.portal-auth-aside {
+  display: flex;
+  flex-direction: column;
+  min-height: 490px;
+  padding: 2rem;
+  color: white;
+  background: linear-gradient(155deg, #243c32 0%, #14231f 76%);
+}
+
+.portal-kicker,
+.record-eyebrow {
+  display: block;
+  color: #78867e;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.portal-auth-aside .portal-kicker {
+  color: var(--primary);
+}
+
+.portal-auth-aside h2 {
+  margin: 0.8rem 0;
+  font: 700 2rem/1.12 "Manrope", sans-serif;
+}
+
+.portal-auth-aside > p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.portal-access-note {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding-top: 2rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.82rem;
+}
+
+.portal-access-note strong {
+  color: white;
+}
+
+.portal-auth-panel {
+  min-width: 0;
+  padding: 1.6rem 2rem 2rem;
+}
+
+.portal-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+  padding: 0.25rem;
+  border-radius: 7px;
+  background: #eff2ed;
+}
+
+.portal-tab {
+  min-height: 40px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #66746b;
+  font: 700 0.83rem "DM Sans", sans-serif;
+  cursor: pointer;
+}
+
+.portal-tab.is-active {
+  background: white;
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(20, 35, 31, 0.1);
+}
+
+.portal-form-heading {
+  margin: 1.4rem 0 1rem;
+}
+
+.portal-form-heading h2 {
+  margin: 0.3rem 0;
+  font: 700 1.45rem "Manrope", sans-serif;
+}
+
+.portal-form-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.portal-form {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.portal-form label {
+  display: grid;
+  gap: 0.38rem;
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.portal-form input,
+.portal-form textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #dfe5dc;
+  border-radius: 6px;
+  padding: 0.72rem 0.8rem;
+  background: #fbfcfa;
+  color: var(--text);
+  font: 500 0.88rem "DM Sans", sans-serif;
+}
+
+.portal-form input:focus,
+.portal-form textarea:focus {
+  outline: 2px solid rgba(212, 241, 120, 0.55);
+  border-color: #a2be6b;
+}
+
+.portal-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.form-span-two {
+  grid-column: 1 / -1;
+}
+
+.field-hint {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.portal-status {
+  min-height: 1.1rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.portal-status-error {
+  color: #b64d37;
+}
+
+.portal-status-success {
+  color: #287247;
+}
+
+.portal-dashboard {
+  display: grid;
+  gap: 1rem;
+}
+
+.dashboard-toolbar,
+.portal-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dashboard-toolbar h2 {
+  margin: 0.25rem 0 0;
+  font: 700 2rem "Manrope", sans-serif;
+}
+
+.dashboard-refresh {
+  min-width: 112px;
+}
+
+.portal-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 0.8rem;
+}
+
+.portal-stat {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #e2e8df;
+  border-radius: 8px;
+  background: white;
+}
+
+.portal-stat span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.portal-stat strong {
+  font: 700 1.7rem "Manrope", sans-serif;
+}
+
+.portal-section {
+  min-width: 0;
+  margin-top: 0.3rem;
+  padding: 1.15rem;
+  border: 1px solid #e2e8df;
+  border-radius: 8px;
+  background: white;
+}
+
+.portal-section-heading {
+  align-items: end;
+  margin-bottom: 0.9rem;
+}
+
+.portal-section-heading h3,
+.subscription-panel h3 {
+  margin: 0.2rem 0 0;
+  font: 700 1.2rem "Manrope", sans-serif;
+}
+
+.portal-section-heading p {
+  max-width: 330px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-align: right;
+}
+
+.portal-record-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.portal-record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem;
+  border: 1px solid #edf0eb;
+  border-radius: 7px;
+  background: #fcfdfb;
+}
+
+.record-main {
+  min-width: 0;
+}
+
+.record-main h4 {
+  margin: 0.22rem 0;
+  font: 700 0.96rem "Manrope", sans-serif;
+}
+
+.record-main p,
+.record-main small {
+  display: block;
+  margin: 0.2rem 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.record-main a {
+  color: #365a40;
+  font-weight: 700;
+}
+
+.record-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 0.4rem;
+}
+
+.record-actions .btn {
+  min-height: 38px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.76rem;
+}
+
+.record-actions button:disabled,
+.subscription-option:disabled,
+.portal-form :disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.portal-empty {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 6px;
+  background: #f6f8f4;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.vendor-status-banner {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.95rem 1.1rem;
+  border: 1px solid #e8ddc8;
+  border-radius: 7px;
+  background: #fff8e9;
+  color: #715a32;
+  font-size: 0.84rem;
+}
+
+.vendor-status-banner.is-approved {
+  border-color: #cde2ce;
+  background: #eff8ee;
+  color: #315d3c;
+}
+
+.vendor-status-banner.is-rejected {
+  border-color: #eccfc8;
+  background: #fff1ed;
+  color: #873f2e;
+}
+
+.vendor-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.6fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.vendor-main-column,
+.vendor-side-column {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.vendor-profile-form {
+  gap: 0.9rem;
+}
+
+.listing-toggle {
+  display: flex !important;
+  align-items: center;
+  gap: 0.6rem !important;
+  color: var(--muted) !important;
+}
+
+.listing-toggle input {
+  width: 17px;
+  height: 17px;
+  accent-color: #365a40;
+}
+
+.subscription-panel > p {
+  color: var(--muted);
+  font-size: 0.83rem;
+}
+
+.subscription-options {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.subscription-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  border: 1px solid #dfe5dc;
+  border-radius: 6px;
+  padding: 0.75rem;
+  background: #fbfcfa;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.subscription-option:hover:not(:disabled) {
+  border-color: #9fbd67;
+  background: #f5f8ed;
+}
+
+.subscription-option strong {
+  font-size: 0.82rem;
+}
+
+.subscription-option span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.subscription-badge {
+  display: inline-flex;
+  margin-top: 0.8rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  background: #fff5df;
+  color: #715a32;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.subscription-badge.is-active {
+  background: #e8f4e6;
+  color: #315d3c;
+}
+
+.directory-state {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.directory-state > strong {
+  font: 600 0.92rem "Manrope", sans-serif;
+}
+
+.assigned-workshop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin: 0.8rem 0;
+  border: 1px solid #d4e4ca;
+  border-radius: 7px;
+  padding: 0.8rem 1rem;
+  background: #eff8ee;
+  color: #315d3c;
+  font-size: 0.86rem;
+}
+
+.assigned-workshop a {
+  color: #315d3c;
+  font-weight: 700;
+}
+
+.directory-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.directory-heading h2 {
+  margin: 0.7rem 0 0.3rem;
+  font: 700 2rem "Manrope", sans-serif;
+}
+
+.directory-heading p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.public-workshop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.public-workshop-card {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 1.15rem;
+  border: 1px solid #e2e8df;
+  border-radius: 8px;
+  background: white;
+}
+
+.workshop-city {
+  color: #536c50;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.public-workshop-card h3 {
+  margin: 0;
+  font: 700 1.05rem "Manrope", sans-serif;
+}
+
+.public-workshop-card p,
+.workshop-address {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.public-workshop-card .text-link {
+  margin-top: 0.4rem;
+  font-size: 0.82rem;
+}
+
+.directory-empty {
+  display: grid;
+  gap: 0.3rem;
+  grid-column: 1 / -1;
+  border: 1px solid #e2e8df;
+  border-radius: 8px;
+  padding: 1.2rem;
+  background: white;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.directory-empty strong {
+  color: var(--text);
+}
+
+@media (max-width: 850px) {
+  .portal-auth {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-auth-aside {
+    min-height: 240px;
+  }
+
+  .portal-access-note {
+    margin-top: 1rem;
+    padding-top: 0;
+  }
+
+  .vendor-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .public-workshop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .portal-main {
+    padding: 2.5rem 0 3.5rem;
+  }
+
+  .portal-auth-aside,
+  .portal-auth-panel {
+    padding: 1.3rem;
+  }
+
+  .portal-form-grid,
+  .portal-stats,
+  .public-workshop-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-stat {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .portal-stat strong {
+    font-size: 1.35rem;
+  }
+
+  .portal-record,
+  .dashboard-toolbar,
+  .portal-section-heading,
+  .directory-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .record-actions {
+    justify-content: flex-start;
+  }
+
+  .portal-section-heading p {
+    text-align: left;
+  }
+
+  .directory-heading h2 {
+    font-size: 1.7rem;
+  }
+}
+
+.vendor-availability {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0;
+}
+
+.vendor-availability > div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.vendor-availability strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font: 700 1.05rem "Manrope", sans-serif;
+  text-transform: capitalize;
+}
+
+.vendor-availability.is-online strong::before,
+.vendor-availability.is-offline strong::before {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #87938b;
+  content: "";
+}
+
+.vendor-availability.is-online strong::before {
+  background: #278350;
+  box-shadow: 0 0 0 4px rgba(39, 131, 80, 0.12);
+}
+
+.vendor-availability p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.availability-status {
+  margin: -0.6rem 0 0;
+}

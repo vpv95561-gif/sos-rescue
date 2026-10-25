@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Request roadside assistance from RoadRescue. Share your vehicle issue and location to create a service request." />
+    <title>Request assistance | RoadRescue</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a href="index.html" class="brand" aria-label="RoadRescue home"><span class="brand-mark">R</span><span>roadrescue<span class="brand-period">.</span></span></a>
+        <nav class="main-nav" aria-label="Main navigation"><a href="services.html">Services</a><a href="index.html#pricing">Pricing</a><a href="tracking.html">Track request</a><a href="portal.html">Partner portal</a></nav>
+        <div class="nav-actions"><a class="nav-link" href="tel:+919876543210">+91 98765 43210</a></div>
+        <button class="menu-toggle" type="button" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </div>
+    </header>
+
+    <main class="booking-main">
+      <div class="container booking-layout">
+        <section class="booking-intro">
+          <span class="eyebrow"><span class="eyebrow-dot"></span> Request assistance</span>
+          <h1>Let’s get you moving.</h1>
+          <p>Share your details and location. Your request is sent to the local RoadRescue service and becomes available for admin review and eligible vendor acceptance.</p>
+          <div class="booking-assurance"><span class="assurance-icon">₹</span><div><strong>Pay only on-site</strong><span>UPI, cash, or card after the estimate is confirmed.</span></div></div>
+          <div class="booking-assurance"><span class="assurance-icon">24</span><div><strong>Emergency support</strong><span>For immediate danger, move to a safe place and call local emergency services.</span></div></div>
+          <a class="text-link" href="tel:+919876543210">Prefer to call? +91 98765 43210 <span aria-hidden="true">↗</span></a>
+        </section>
+
+        <form class="contact-form booking-form" id="contactForm">
+          <div class="form-heading"><div><span class="form-kicker">SERVICE REQUEST</span><h2>Your details</h2></div><span class="required-note">* Required</span></div>
+          <div class="form-two-col">
+            <label>Full name *<input type="text" name="name" placeholder="Your name" autocomplete="name" required /></label>
+            <label>Mobile number *<input type="tel" name="phone" placeholder="+91 98765 43210" autocomplete="tel" inputmode="tel" required /></label>
+          </div>
+          <label>What do you need? *<select name="issue" required><option value="Roadside assistance">Select a service</option><option>Dead battery</option><option>Flat tire</option><option>Towing</option><option>Fuel delivery</option><option>Lockout</option><option>Minor repair</option><option>Other</option></select></label>
+          <div class="form-two-col">
+            <label>Vehicle type<select name="vehicle"><option>Car</option><option>Motorcycle / scooter</option><option>SUV</option><option>Commercial vehicle</option><option>Other</option></select></label>
+            <label>Vehicle model<input type="text" name="vehicleModel" placeholder="e.g. Swift, Activa" /></label>
+          </div>
+          <label>Breakdown location *<input type="text" name="location" placeholder="Area, city, or nearby landmark" autocomplete="street-address" required /></label>
+          <div class="location-actions"><button class="btn btn-secondary location-button" id="useLocationButton" type="button"><span aria-hidden="true">⌖</span> Use my current location</button><span id="locationStatus" class="location-status" aria-live="polite">Optional: share GPS for a map preview.</span></div>
+          <input type="hidden" name="latitude" /><input type="hidden" name="longitude" />
+          <label>Anything else we should know?<textarea name="message" rows="3" placeholder="Vehicle colour, road conditions, or details about the issue"></textarea></label>
+          <label>Payment preference<select name="payment"><option>UPI on-site</option><option>Cash on-site</option><option>Card on-site</option></select></label>
+          <button class="btn btn-primary full-width" type="submit">Create service request <span aria-hidden="true">↗</span></button>
+          <p class="form-status" aria-live="polite"></p>
+          <p class="fine-print">This local demo does not charge payments or connect to a real-world dispatch network. Share only test details unless you operate this server.</p>
+        </form>
+      </div>
+    </main>
+
+    <footer class="site-footer"><div class="container footer-wrap"><a href="index.html" class="brand footer-brand"><span class="brand-mark">R</span><span>roadrescue<span class="brand-period">.</span></span></a><div class="footer-links"><a href="services.html">Services</a><a href="booking.html">Book help</a><a href="tracking.html">Track request</a><a href="portal.html">Partner portal</a><a href="mailto:help@roadrescuesos.in">Contact</a></div><p>© <span id="year"></span> RoadRescue. On-site UPI, cash &amp; card.</p></div></footer>
+    <a class="whatsapp-fab" href="https://wa.me/919876543210?text=Hi%2C%20I%20need%20roadside%20assistance." target="_blank" rel="noopener noreferrer" aria-label="Chat with RoadRescue on WhatsApp"><span class="whatsapp-icon" aria-hidden="true">◉</span><span>WhatsApp</span></a>
+  </body>
+</html>
