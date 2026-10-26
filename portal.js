@@ -227,9 +227,14 @@ document.getElementById('setupForm').addEventListener('submit', (event) => {
   submitAuth(event.currentTarget, '/api/setup', 'Administrator account created.');
 });
 
-document.getElementById('loginForm').addEventListener('submit', (event) => {
+document.getElementById('adminLoginForm').addEventListener('submit', (event) => {
   event.preventDefault();
-  submitAuth(event.currentTarget, '/api/login', 'Signed in.');
+  submitAuth(event.currentTarget, '/api/admin/login', 'Signed in.');
+});
+
+document.getElementById('vendorLoginForm').addEventListener('submit', (event) => {
+  event.preventDefault();
+  submitAuth(event.currentTarget, '/api/vendor/login', 'Signed in.');
 });
 
 document.getElementById('vendorEnrollForm').addEventListener('submit', (event) => {
@@ -238,7 +243,8 @@ document.getElementById('vendorEnrollForm').addEventListener('submit', (event) =
 });
 
 document.getElementById('logoutButton').addEventListener('click', async () => {
-  try { await apiRequest('/api/logout', { method: 'POST', body: {} }); } catch {}
+  const endpoint = currentUser?.role === 'admin' ? '/api/admin/logout' : '/api/vendor/logout';
+  try { await apiRequest(endpoint, { method: 'POST', body: {} }); } catch {}
   currentUser = null;
   csrfToken = '';
   dashboardPanel.hidden = true;
@@ -349,7 +355,7 @@ const initializePortal = async () => {
     if (session?.user) {
       await setAuthenticatedView(session.user, session.csrf);
     } else {
-      toggleAuthForm('login');
+      toggleAuthForm('admin-login');
     }
   } catch {
     setupPanel.hidden = true;

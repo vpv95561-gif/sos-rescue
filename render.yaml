@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: sos-vehicle-assist
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ROADRESCUE_HOST
+        value: 0.0.0.0
+      - key: ROADRESCUE_COOKIE_SECURE
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: ROADRESCUE_ADMIN_EMAIL
+        value: admin@roadrescue.com
+      - key: ROADRESCUE_ADMIN_PASSWORD
+        sync: false
+      - key: ROADRESCUE_ADMIN_NAME
+        value: ADMIN

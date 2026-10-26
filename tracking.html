@@ -36,6 +36,8 @@
           <aside class="tracking-details">
             <div class="eta-card"><span class="card-overline">ESTIMATED ARRIVAL · DEMO</span><div class="eta-value"><strong id="etaValue">18</strong><span>min</span></div><div class="eta-progress"><span id="etaProgress"></span></div><p id="etaCaption">Preview estimate. Actual availability and arrival time must be confirmed by a provider.</p></div>
             <div class="request-card"><div class="request-card-heading"><div><span class="card-overline">REQUEST REFERENCE</span><strong id="requestReference">RR-DEMO</strong></div><span class="request-status-pill" id="requestStatus">Preview</span></div><dl><div><dt>Service</dt><dd id="requestIssue">Roadside assistance</dd></div><div><dt>Location</dt><dd id="requestLocation">Bengaluru map preview</dd></div><div><dt>Vehicle</dt><dd id="requestVehicle">Not provided</dd></div><div><dt>Payment</dt><dd id="requestPayment">Pay on-site</dd></div></dl><a id="whatsappRequestLink" class="btn btn-whatsapp full-width" href="https://wa.me/919876543210?text=Hi%2C%20I%20need%20roadside%20assistance." target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a></div>
+            <div class="payment-card"><span class="card-overline">PAYMENT GATEWAY</span><p>Pay securely for this request using UPI, card, or cash on-site.</p><select id="paymentMethod"><option value="upi">UPI</option><option value="card">Card</option><option value="cash">Cash on-site</option></select><div id="upiFields"><input id="upiId" placeholder="yourname@upi" /></div><div id="cardFields" hidden><input id="cardNumber" placeholder="Card number" inputmode="numeric" /></div><input id="paymentAmount" type="number" placeholder="Amount in paise (optional)" /><button class="btn btn-primary full-width" id="payNowButton" type="button">Pay now</button><p id="paymentStatus" aria-live="polite"></p></div>
+            <div class="review-card"><span class="card-overline">WORKSHOP REVIEW</span><p>Rate the workshop after service completion.</p><select id="reviewRating"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Average</option><option value="2">2 - Poor</option><option value="1">1 - Bad</option></select><textarea id="reviewComment" rows="3" placeholder="Share your experience"></textarea><input id="reviewPhone" placeholder="Your mobile number" /><button class="btn btn-secondary full-width" id="submitReviewButton" type="button">Submit review</button><p id="reviewStatus" aria-live="polite"></p></div>
             <div class="tracking-timeline"><span class="card-overline">REQUEST STATUS</span><ol><li class="timeline-step is-complete"><span></span><div><strong>Request created</strong><small>Saved to the local service</small></div></li><li class="timeline-step is-current"><span></span><div><strong>Waiting for a workshop</strong><small>A subscribed vendor can accept this request</small></div></li><li class="timeline-step"><span></span><div><strong>Workshop en route</strong><small>Arrival estimate is not live</small></div></li></ol></div>
             <button class="btn btn-secondary full-width" id="refreshLocationButton" type="button"><span aria-hidden="true">⌖</span> Update my location</button>
           </aside>
@@ -44,6 +46,65 @@
       </div>
     </main>
 
+    <script>
+      (function () {
+        const getReference = () => {
+          const el = document.getElementById('requestReference');
+          const value = el ? el.textContent.trim() : '';
+          return /^RR-/i.test(value) && value !== 'RR-DEMO' ? value : (new URLSearchParams(location.search).get('reference') || '');
+        };
+        const paymentMethod = document.getElementById('paymentMethod');
+        const upiFields = document.getElementById('upiFields');
+        const cardFields = document.getElementById('cardFields');
+        if (paymentMethod) {
+          paymentMethod.addEventListener('change', () => {
+            if (upiFields) upiFields.hidden = paymentMethod.value !== 'upi';
+            if (cardFields) cardFields.hidden = paymentMethod.value !== 'card';
+          });
+        }
+        document.getElementById('payNowButton')?.addEventListener('click', async () => {
+          const reference = getReference();
+          const status = document.getElementById('paymentStatus');
+          if (!reference) { if (status) status.textContent = 'Track a request first.'; return; }
+          const payload = {
+            reference,
+            method: paymentMethod ? paymentMethod.value : 'upi',
+            amount: Number(document.getElementById('paymentAmount')?.value || 0),
+            upiId: document.getElementById('upiId')?.value || '',
+            cardNumber: document.getElementById('cardNumber')?.value || ''
+          };
+          try {
+            const response = await fetch('/api/payments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Payment failed.');
+            if (status) status.textContent = `Payment ${result.status}. Ref: ${result.transactionRef || 'on-site'}`;
+            const paymentEl = document.getElementById('requestPayment');
+            if (paymentEl) paymentEl.textContent = result.status === 'paid' ? 'Paid' : 'Cash on-site';
+          } catch (error) {
+            if (status) status.textContent = error.message;
+          }
+        });
+        document.getElementById('submitReviewButton')?.addEventListener('click', async () => {
+          const reference = getReference();
+          const status = document.getElementById('reviewStatus');
+          if (!reference) { if (status) status.textContent = 'Track a request first.'; return; }
+          const payload = {
+            reference,
+            phone: document.getElementById('reviewPhone')?.value || '',
+            rating: Number(document.getElementById('reviewRating')?.value || 5),
+            comment: document.getElementById('reviewComment')?.value || ''
+          };
+          try {
+            const response = await fetch('/api/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Review failed.');
+            if (status) status.textContent = 'Review submitted successfully.';
+          } catch (error) {
+            if (status) status.textContent = error.message;
+          }
+        });
+      })();
+    </script>
     <footer class="site-footer"><div class="container footer-wrap"><a href="index.html" class="brand footer-brand"><span class="brand-mark">R</span><span>roadrescue<span class="brand-period">.</span></span></a><div class="footer-links"><a href="services.html">Services</a><a href="booking.html">Book help</a><a href="tracking.html">Track request</a><a href="portal.html">Partner portal</a><a href="mailto:help@roadrescuesos.in">Contact</a></div><p>© <span id="year"></span> RoadRescue. On-site UPI, cash &amp; card.</p></div></footer>
     <a class="whatsapp-fab" href="https://wa.me/919876543210?text=Hi%2C%20I%20need%20roadside%20assistance." target="_blank" rel="noopener noreferrer" aria-label="Chat with RoadRescue on WhatsApp"><span class="whatsapp-icon" aria-hidden="true">◉</span><span>WhatsApp</span></a>
   </body>

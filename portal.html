@@ -51,18 +51,27 @@
 
             <div id="authFormsPanel">
               <div class="portal-tabs" role="tablist" aria-label="Portal access">
-                <button class="portal-tab is-active" type="button" role="tab" aria-selected="true" data-auth-tab="login">Sign in</button>
-                <button class="portal-tab" type="button" role="tab" aria-selected="false" data-auth-tab="enroll">Enroll workshop</button>
+                <button class="portal-tab is-active" type="button" role="tab" aria-selected="true" data-auth-tab="admin-login">Admin sign in</button>
+                <button class="portal-tab" type="button" role="tab" aria-selected="false" data-auth-tab="vendor-login">Vendor sign in</button>
+              <button class="portal-tab" type="button" role="tab" aria-selected="false" data-auth-tab="enroll">Enroll workshop</button>
               </div>
-              <form id="loginForm" class="portal-form" data-auth-form="login">
-                <div class="portal-form-heading"><span class="portal-kicker">ADMIN OR VENDOR</span><h2>Sign in to continue</h2></div>
-                <label>Email<input name="email" type="email" autocomplete="username" required maxlength="254" /></label>
+              <form id="adminLoginForm" class="portal-form" data-auth-form="admin-login">
+                <div class="portal-form-heading"><span class="portal-kicker">ADMINISTRATOR</span><h2>Admin sign in</h2></div>
+                <label>Username or email<input name="email" type="text" autocomplete="username" required maxlength="254" /></label>
                 <label>Password<input name="password" type="password" autocomplete="current-password" required /></label>
-                <button class="btn btn-primary full-width" type="submit">Sign in</button>
+                <button class="btn btn-primary full-width" type="submit">Sign in as admin</button>
                 <p class="portal-status" aria-live="polite"></p>
               </form>
 
-              <form id="vendorEnrollForm" class="portal-form" data-auth-form="enroll" hidden>
+              <form id="vendorLoginForm" class="portal-form" data-auth-form="vendor-login" hidden>
+              <div class="portal-form-heading"><span class="portal-kicker">SERVICE PARTNER</span><h2>Vendor sign in</h2></div>
+              <label>Email<input name="email" type="email" autocomplete="username" required maxlength="254" /></label>
+              <label>Password<input name="password" type="password" autocomplete="current-password" required /></label>
+              <button class="btn btn-primary full-width" type="submit">Sign in as vendor</button>
+              <p class="portal-status" aria-live="polite"></p>
+            </form>
+
+            <form id="vendorEnrollForm" class="portal-form" data-auth-form="enroll" hidden>
                 <div class="portal-form-heading"><span class="portal-kicker">SERVICE PARTNER</span><h2>Enroll your workshop</h2><p>New vendors are reviewed by an administrator before they can accept jobs.</p></div>
                 <div class="portal-form-grid">
                   <label>Contact name<input name="name" autocomplete="name" required maxlength="100" /></label>

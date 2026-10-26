@@ -15,9 +15,14 @@ from urllib.parse import unquote, urlsplit
 
 
 ROOT = Path(__file__).resolve().parent
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 DATABASE = Path(os.environ.get("ROADRESCUE_DB", str(ROOT / "roadrescue.sqlite3"))).resolve()
 SESSION_COOKIE = "roadrescue_session"
 SESSION_DAYS = 7
+PERMANENT_ADMIN_EMAIL = os.environ.get("ROADRESCUE_ADMIN_EMAIL", "admin@roadrescue.com").strip().lower()
+SECURE_COOKIES = os.environ.get("ROADRESCUE_COOKIE_SECURE", "").strip().lower() in {"1", "true", "yes", "on"}
+PERMANENT_ADMIN_PASSWORD = os.environ.get("ROADRESCUE_ADMIN_PASSWORD", "Admin@!23")
+PERMANENT_ADMIN_NAME = os.environ.get("ROADRESCUE_ADMIN_NAME", "ADMIN")
 MAX_BODY_BYTES = 64 * 1024
 DB_LOCK = threading.RLock()
 
@@ -33,11 +38,79 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def is_postgres():
+    return DATABASE_URL.startswith(("postgres://", "postgresql://"))
+
+
+def insert_id(connection, sql, params=()):
+    if is_postgres():
+        row = connection.execute(sql + " RETURNING id", params).fetchone()
+        return row["id"] if isinstance(row, dict) else row[0]
+    cursor = connection.execute(sql, params)
+    return cursor.lastrowid
+
+
+class DBConnection:
+    """Small adapter so the existing ``?`` placeholders work with psycopg."""
+
+    def __init__(self, raw):
+        self.raw = raw
+
+    def _convert(self, sql):
+        if isinstance(sql, str) and "?" in sql:
+            return sql.replace("?", "%s")
+        return sql
+
+    def execute(self, sql, parameters=()):
+        if is_postgres() and isinstance(sql, str) and sql.strip().upper() == "BEGIN IMMEDIATE":
+            return self.raw.cursor()
+        return self.raw.execute(self._convert(sql), parameters)
+
+    def executescript(self, sql):
+        if is_postgres():
+            sql = sql.replace("INTEGER PRIMARY KEY", "SERIAL PRIMARY KEY")
+            sql = sql.replace("BLOB", "BYTEA")
+            sql = sql.replace("COLLATE NOCASE", "")
+        for statement in sql.split(";"):
+            statement = statement.strip()
+            if statement:
+                self.raw.execute(self._convert(statement))
+
+    def __getattr__(self, name):
+        return getattr(self.raw, name)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return self.raw.__exit__(*args)
+
+
+def hybrid_row_factory(cursor):
+    fields = [column.name for column in cursor.description]
+
+    class HybridRow(dict):
+        def __getitem__(self, key):
+            if isinstance(key, int):
+                return list(self.values())[key]
+            return super().__getitem__(key)
+
+    def make_row(values):
+        return HybridRow(zip(fields, values))
+
+    return make_row
+
+
 def get_db():
+    if is_postgres():
+        import psycopg
+
+        connection = psycopg.connect(DATABASE_URL, row_factory=hybrid_row_factory)
+        return DBConnection(connection)
     connection = sqlite3.connect(DATABASE, timeout=10)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
-    return connection
+    return DBConnection(connection)
 
 
 def init_db():
@@ -75,6 +148,8 @@ def init_db():
                 longitude REAL,
                 message TEXT NOT NULL DEFAULT '',
                 payment TEXT NOT NULL,
+                 payment_status TEXT NOT NULL DEFAULT 'pending',
+                 paid_at TEXT,
                 status TEXT NOT NULL DEFAULT 'open',
                 assigned_vendor INTEGER REFERENCES users(id),
                 created_at TEXT NOT NULL,
@@ -103,19 +178,57 @@ def init_db():
                 starts_at TEXT,
                 ends_at TEXT
             );
+             CREATE TABLE IF NOT EXISTS payments (
+                 id INTEGER PRIMARY KEY,
+                 job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+                 reference TEXT NOT NULL,
+                 amount_paise INTEGER NOT NULL DEFAULT 0,
+                 method TEXT NOT NULL,
+                 status TEXT NOT NULL DEFAULT 'pending',
+                 transaction_ref TEXT,
+                 upi_id TEXT,
+                 card_last4 TEXT,
+                 created_at TEXT NOT NULL,
+                 paid_at TEXT
+             );
+             CREATE TABLE IF NOT EXISTS reviews (
+                 id INTEGER PRIMARY KEY,
+                 workshop_id INTEGER REFERENCES workshops(id) ON DELETE CASCADE,
+                 vendor_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                 job_id INTEGER REFERENCES jobs(id) ON DELETE SET NULL,
+                 customer_phone TEXT NOT NULL DEFAULT '',
+                 rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+                 comment TEXT NOT NULL DEFAULT '',
+                 created_at TEXT NOT NULL
+             );
+             CREATE INDEX IF NOT EXISTS payments_job ON payments(job_id, id DESC);
+             CREATE INDEX IF NOT EXISTS reviews_workshop ON reviews(workshop_id, id DESC);
+
             CREATE INDEX IF NOT EXISTS jobs_status_created ON jobs(status, created_at);
             CREATE INDEX IF NOT EXISTS subscriptions_vendor ON subscriptions(vendor_id, id DESC);
             """
         )
-        user_columns = {row["name"] for row in connection.execute("PRAGMA table_info(users)")}
-        if "availability" not in user_columns:
-            connection.execute("ALTER TABLE users ADD COLUMN availability TEXT NOT NULL DEFAULT 'offline'")
+        if not is_postgres():
+            user_columns = {row["name"] for row in connection.execute("PRAGMA table_info(users)")}
+            if "availability" not in user_columns:
+                connection.execute("ALTER TABLE users ADD COLUMN availability TEXT NOT NULL DEFAULT 'offline'")
+            job_columns = {row["name"] for row in connection.execute("PRAGMA table_info(jobs)")}
+            if "payment_status" not in job_columns:
+                connection.execute("ALTER TABLE jobs ADD COLUMN payment_status TEXT NOT NULL DEFAULT 'pending'")
+            if "paid_at" not in job_columns:
+                connection.execute("ALTER TABLE jobs ADD COLUMN paid_at TEXT")
+
 
 
 def password_hash(password, salt=None):
     salt = salt or secrets.token_bytes(16)
     digest = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=16384, r=8, p=1)
     return salt, digest
+
+
+def verify_password(password, salt, expected_hash):
+    _, candidate = password_hash(password, salt)
+    return hmac.compare_digest(candidate, expected_hash)
 
 
 def safe_user(row):
@@ -256,12 +369,12 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
                 connection.execute("BEGIN IMMEDIATE")
                 if connection.execute("SELECT 1 FROM users WHERE role = 'admin' LIMIT 1").fetchone():
                     raise ApiError(409, "Admin setup has already been completed.")
-                cursor = connection.execute(
+                user_id = insert_id(
+                    connection,
                     """INSERT INTO users(name,email,password_salt,password_hash,role,status,created_at)
                        VALUES(?,?,?,?, 'admin','approved',?)""",
                     (name, email, salt, digest, now_iso()),
                 )
-                user_id = cursor.lastrowid
                 self.create_session(connection, token, csrf, user_id)
                 user = safe_user(connection.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone())
             return 201, {"user": user, "csrf": csrf}, self.session_cookie(token)
@@ -286,12 +399,12 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
             try:
                 with DB_LOCK, get_db() as connection:
                     connection.execute("BEGIN IMMEDIATE")
-                    cursor = connection.execute(
+                    vendor_id = insert_id(
+                        connection,
                         """INSERT INTO users(name,email,password_salt,password_hash,role,status,phone,city,created_at)
                            VALUES(?,?,?,?,'vendor','pending',?,?,?)""",
                         (name, email, salt, digest, phone, city, now_iso()),
                     )
-                    vendor_id = cursor.lastrowid
                     connection.execute(
                         """INSERT INTO workshops(vendor_id,business_name,description,phone,city,address,services,updated_at)
                            VALUES(?,?,?,?,?,?,?,?)""",
@@ -304,8 +417,13 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
             return 201, {"user": user, "csrf": csrf}, self.session_cookie(token)
 
         if method == "POST" and path == "/api/login":
-            email = clean(data.get("email"), 254).lower()
+            raw_login = clean(data.get("email"), 254).lower()
             password = str(data.get("password", ""))
+            email = raw_login
+            if raw_login in ("admin", PERMANENT_ADMIN_NAME.lower()) and password == PERMANENT_ADMIN_PASSWORD:
+                email = PERMANENT_ADMIN_EMAIL
+            if email == PERMANENT_ADMIN_EMAIL and password == PERMANENT_ADMIN_PASSWORD:
+                self.ensure_permanent_admin()
             with get_db() as connection:
                 row = connection.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
             if row is None:
@@ -320,20 +438,27 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
                 self.create_session(connection, token, csrf, row["id"])
             return 200, {"user": safe_user(row), "csrf": csrf}, self.session_cookie(token)
 
+        if method == "POST" and path in ("/api/admin/login", "/api/admin/signin", "/api/admin/sign-in"):
+            return self.role_login(data, "admin")
+
+        if method == "POST" and path in ("/api/vendor/login", "/api/vendor/signin", "/api/vendor/sign-in"):
+            return self.role_login(data, "vendor")
+
         if method == "GET" and path == "/api/me":
             session = get_session(self)
             if session is None:
                 raise ApiError(401, "You are not signed in.")
             return 200, {"user": session["user"], "csrf": session["csrf"]}, []
 
-        if method == "POST" and path == "/api/logout":
+        if method == "POST" and path in ("/api/logout", "/api/admin/logout", "/api/admin/signout", "/api/admin/sign-out",
+                                        "/api/vendor/logout", "/api/vendor/signout", "/api/vendor/sign-out"):
             session = require_user(self)
             require_csrf(self, session)
-            with get_db() as connection:
-                if session["user"]["role"] == "vendor":
-                    connection.execute("UPDATE users SET availability='offline' WHERE id=?", (session["user"]["id"],))
-                connection.execute("DELETE FROM sessions WHERE token_hash=?", (session["token_hash"],))
-            return 200, {"ok": True}, [("Set-Cookie", self.session_cookie_value("", max_age=0))]
+            if path.startswith("/api/admin/") and session["user"]["role"] != "admin":
+                raise ApiError(403, "This account cannot access that portal.")
+            if path.startswith("/api/vendor/") and session["user"]["role"] != "vendor":
+                raise ApiError(403, "This account cannot access that portal.")
+            return self.perform_logout(session)
 
         if method == "POST" and path == "/api/jobs":
             return self.create_job(data)
@@ -341,9 +466,15 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
         if method == "GET" and path == "/api/workshops":
             with get_db() as connection:
                 rows = connection.execute(
-                    """SELECT w.business_name,w.description,w.phone,w.city,w.address,w.services
+                    """SELECT w.id,w.vendor_id,w.business_name,w.description,w.phone,w.city,w.address,w.services,
+                              COALESCE(r.average_rating, 0) AS average_rating,
+                              COALESCE(r.review_count, 0) AS review_count
                        FROM workshops w JOIN users u ON u.id=w.vendor_id
                        JOIN subscriptions s ON s.vendor_id=w.vendor_id
+                       LEFT JOIN (
+                           SELECT workshop_id, ROUND(AVG(rating), 1) AS average_rating, COUNT(*) AS review_count
+                           FROM reviews GROUP BY workshop_id
+                       ) r ON r.workshop_id=w.id
                        WHERE w.listing_enabled=1 AND u.status='approved' AND s.status='active' AND s.ends_at>?
                        GROUP BY w.id ORDER BY w.city,w.business_name""",
                     (now_iso(),),
@@ -355,7 +486,8 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
             with get_db() as connection:
                 row = connection.execute(
                     """SELECT j.reference,j.issue,j.vehicle,j.location,j.status,j.created_at,
-                              w.business_name AS workshop_name,w.phone AS workshop_phone
+                              j.payment,j.payment_status,j.paid_at,j.assigned_vendor,
+                              w.id AS workshop_id,w.business_name AS workshop_name,w.phone AS workshop_phone
                        FROM jobs j LEFT JOIN workshops w ON w.vendor_id=j.assigned_vendor
                        WHERE j.reference=?""",
                     (reference,),
@@ -460,12 +592,13 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
                     raise ApiError(409, "Your workshop already has an active subscription.")
                 if pending:
                     raise ApiError(409, "You already have a subscription awaiting payment confirmation.")
-                cursor = connection.execute(
+                subscription_id = insert_id(
+                    connection,
                     """INSERT INTO subscriptions(vendor_id,plan,price_paise,status,created_at)
                        VALUES(?,?,?,'pending_payment',?)""",
                     (session["user"]["id"], plan_name, price, now_iso()),
                 )
-            return 201, {"ok": True, "subscriptionId": cursor.lastrowid, "status": "pending_payment"}, []
+            return 201, {"ok": True, "subscriptionId": subscription_id, "status": "pending_payment"}, []
 
         if method == "POST" and path.startswith("/api/vendor/jobs/") and path.endswith("/accept"):
             session = require_vendor(self, approved=True, subscription=True)
@@ -512,7 +645,232 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
                 raise ApiError(409, "Request could not be cancelled.")
             return 200, {"ok": True}, []
 
+        if method == "POST" and path in ("/api/payments", "/api/payment"):
+            return self.create_payment(data)
+
+        if method == "GET" and (path.startswith("/api/payments/") or path.startswith("/api/payment/")):
+            reference = clean(unquote(path.rsplit("/", 1)[-1]), 40)
+            return 200, {"payments": self.list_payments(reference)}, []
+
+        if method == "POST" and path in ("/api/reviews", "/api/review"):
+            return self.create_review(data)
+
+        if method == "GET" and path.startswith("/api/workshops/") and path.endswith("/reviews"):
+            workshop_id = path.split("/")[3]
+            return 200, {"reviews": self.list_reviews(workshop_id)}, []
+
+        if method == "GET" and path == "/api/workshops":
+            with get_db() as connection:
+                rows = connection.execute(
+                    """SELECT w.id,w.vendor_id,w.business_name,w.description,w.phone,w.city,w.address,w.services,
+                              COALESCE(r.average_rating, 0) AS average_rating,
+                              COALESCE(r.review_count, 0) AS review_count
+                       FROM workshops w JOIN users u ON u.id=w.vendor_id
+                       JOIN subscriptions s ON s.vendor_id=w.vendor_id
+                       LEFT JOIN (
+                           SELECT workshop_id, ROUND(AVG(rating), 1) AS average_rating, COUNT(*) AS review_count
+                           FROM reviews GROUP BY workshop_id
+                       ) r ON r.workshop_id=w.id
+                       WHERE w.listing_enabled=1 AND u.status='approved' AND s.status='active' AND s.ends_at>?
+                       GROUP BY w.id ORDER BY w.city,w.business_name""",
+                    (now_iso(),),
+                ).fetchall()
+            return 200, {"workshops": [dict(row) for row in rows]}, []
+
+
         raise ApiError(404, "API route not found.")
+
+    def create_payment(self, data):
+        reference = clean(data.get("reference"), 40)
+        if not reference:
+            raise ApiError(400, "Service request reference is required.")
+        method_raw = str(data.get("method", "")).strip().lower().replace(" ", "").replace("-", "").replace("_", "")
+        method_map = {
+            "upi": "upi", "upion-site": "upi", "upionsite": "upi",
+            "card": "card", "cardonsite": "card",
+            "cash": "cash", "cashonsite": "cash",
+        }
+        method = method_map.get(method_raw)
+        if method is None:
+            raise ApiError(400, "Choose UPI, card, or cash payment.")
+        amount = data.get("amount", 0)
+        try:
+            amount_paise = int(amount)
+        except (TypeError, ValueError):
+            raise ApiError(400, "Payment amount must be a whole number in paise.")
+        if amount_paise < 0:
+            raise ApiError(400, "Payment amount cannot be negative.")
+
+        upi_id = clean(data.get("upiId") or data.get("upi_id"), 100)
+        card_number = str(data.get("cardNumber") or data.get("card_number") or "").replace(" ", "").replace("-", "")
+        card_last4 = card_number[-4:] if len(card_number) >= 4 else None
+
+        with DB_LOCK, get_db() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            job = connection.execute("SELECT * FROM jobs WHERE reference=?", (reference,)).fetchone()
+            if job is None:
+                raise ApiError(404, "Service request not found.")
+            status = "pending"
+            transaction_ref = None
+            paid_at = None
+            label = "UPI on-site"
+            if method == "upi":
+                if "@" not in upi_id:
+                    raise ApiError(400, "Enter a valid UPI ID.")
+                status = "paid"
+                transaction_ref = "UPI-" + secrets.token_hex(6).upper()
+                paid_at = now_iso()
+                label = "UPI paid"
+            elif method == "card":
+                if len(card_number) < 12 or not card_number.isdigit():
+                    raise ApiError(400, "Enter a valid card number.")
+                status = "paid"
+                transaction_ref = "CARD-" + secrets.token_hex(6).upper()
+                paid_at = now_iso()
+                label = "Card paid"
+            elif method == "cash":
+                status = "pending_on_site"
+                label = "Cash on-site"
+            payment_id = insert_id(
+                connection,
+                """INSERT INTO payments(job_id,reference,amount_paise,method,status,transaction_ref,upi_id,card_last4,created_at,paid_at)
+                   VALUES(?,?,?,?,?,?,?,?,?,?)""",
+                (job["id"], reference, amount_paise, method, status, transaction_ref, upi_id or None, card_last4, now_iso(), paid_at),
+            )
+            connection.execute(
+                "UPDATE jobs SET payment=?, payment_status=?, paid_at=? WHERE id=?",
+                (label, status, paid_at, job["id"]),
+            )
+        return 201, {
+            "paymentId": payment_id,
+            "reference": reference,
+            "method": method,
+            "status": status,
+            "transactionRef": transaction_ref,
+            "paidAt": paid_at,
+        }, []
+
+    def list_payments(self, reference):
+        reference = clean(reference, 40)
+        with get_db() as connection:
+            job = connection.execute("SELECT id FROM jobs WHERE reference=?", (reference,)).fetchone()
+            if job is None:
+                raise ApiError(404, "Service request not found.")
+            rows = connection.execute(
+                "SELECT * FROM payments WHERE reference=? ORDER BY id DESC", (reference,)
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+
+    def create_review(self, data):
+        reference = clean(data.get("reference"), 40)
+        phone = clean(data.get("phone"), 24)
+        comment = clean(data.get("comment"), 1000)
+        try:
+            rating = int(data.get("rating"))
+        except (TypeError, ValueError):
+            raise ApiError(400, "Rating must be a number from 1 to 5.")
+        if rating < 1 or rating > 5:
+            raise ApiError(400, "Rating must be between 1 and 5.")
+        if not reference:
+            raise ApiError(400, "Service request reference is required.")
+        with DB_LOCK, get_db() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            job = connection.execute("SELECT * FROM jobs WHERE reference=?", (reference,)).fetchone()
+            if job is None:
+                raise ApiError(404, "Service request not found.")
+            if phone and job["customer_phone"] != phone:
+                raise ApiError(403, "Phone number does not match this service request.")
+            if job["assigned_vendor"] is None:
+                raise ApiError(409, "This request has not been assigned to a workshop yet.")
+            workshop = connection.execute(
+                "SELECT id, vendor_id FROM workshops WHERE vendor_id=?", (job["assigned_vendor"],)
+            ).fetchone()
+            if workshop is None:
+                raise ApiError(404, "Workshop not found.")
+            existing = connection.execute("SELECT id FROM reviews WHERE job_id=?", (job["id"],)).fetchone()
+            if existing is not None:
+                raise ApiError(409, "A review has already been submitted for this request.")
+            review_id = insert_id(
+                connection,
+                """INSERT INTO reviews(workshop_id,vendor_id,job_id,customer_phone,rating,comment,created_at)
+                   VALUES(?,?,?,?,?,?,?)""",
+                (workshop["id"], workshop["vendor_id"], job["id"], job["customer_phone"], rating, comment, now_iso()),
+            )
+        return 201, {"reviewId": review_id, "workshopId": workshop["id"], "rating": rating}, []
+
+    def list_reviews(self, workshop_id):
+        with get_db() as connection:
+            rows = connection.execute(
+                "SELECT * FROM reviews WHERE workshop_id=? ORDER BY id DESC", (workshop_id,)
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+
+    def ensure_permanent_admin(self):
+        with DB_LOCK, get_db() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute("SELECT * FROM users WHERE email=?", (PERMANENT_ADMIN_EMAIL,)).fetchone()
+            if row is None:
+                salt, digest = password_hash(PERMANENT_ADMIN_PASSWORD)
+                connection.execute(
+                    "INSERT INTO users(name,email,password_salt,password_hash,role,status,created_at) VALUES(?,?,?,?,'admin','approved',?)",
+                    (PERMANENT_ADMIN_NAME, PERMANENT_ADMIN_EMAIL, salt, digest, now_iso()),
+                )
+            else:
+                salt, digest = password_hash(PERMANENT_ADMIN_PASSWORD)
+                connection.execute(
+                    "UPDATE users SET password_salt=?,password_hash=?,role='admin',status='approved',name=? WHERE id=?",
+                    (salt, digest, PERMANENT_ADMIN_NAME, row["id"]),
+                )
+
+    def perform_logout(self, session):
+        with get_db() as connection:
+            if session["user"]["role"] == "vendor":
+                connection.execute("UPDATE users SET availability='offline' WHERE id=?", (session["user"]["id"],))
+            connection.execute("DELETE FROM sessions WHERE token_hash=?", (session["token_hash"],))
+        return 200, {"ok": True}, [("Set-Cookie", self.session_cookie_value("", max_age=0))]
+
+    def role_login(self, data, role):
+        raw_identifier = clean(data.get("email") or data.get("username"), 254).lower()
+        password = str(data.get("password", ""))
+        email = raw_identifier
+        if role == "admin" and raw_identifier in ("admin", PERMANENT_ADMIN_NAME.lower(), PERMANENT_ADMIN_EMAIL) and password == PERMANENT_ADMIN_PASSWORD:
+            email = PERMANENT_ADMIN_EMAIL
+        if role == "admin" and email == PERMANENT_ADMIN_EMAIL and password == PERMANENT_ADMIN_PASSWORD:
+            with DB_LOCK, get_db() as connection:
+                connection.execute("BEGIN IMMEDIATE")
+                row = connection.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
+                if row is None:
+                    salt, digest = password_hash(password)
+                    user_id = insert_id(
+                        connection,
+                        "INSERT INTO users(name,email,password_salt,password_hash,role,status,created_at) VALUES(?,?,?,?,'admin','approved',?)",
+                        (PERMANENT_ADMIN_NAME, email, salt, digest, now_iso()),
+                    )
+                    row = connection.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+                else:
+                    salt, digest = password_hash(password)
+                    connection.execute(
+                        "UPDATE users SET password_salt=?,password_hash=?,role='admin',status='approved',name=? WHERE id=?",
+                        (salt, digest, PERMANENT_ADMIN_NAME, row["id"]),
+                    )
+                    row = connection.execute("SELECT * FROM users WHERE id=?", (row["id"],)).fetchone()
+        else:
+            with get_db() as connection:
+                row = connection.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
+            if row is None:
+                password_hash(password, b"roadrescue-demo-salt")
+                raise ApiError(401, "Email or password is incorrect.")
+            if not verify_password(password, row["password_salt"], row["password_hash"]):
+                raise ApiError(401, "Email or password is incorrect.")
+        if row["role"] != role:
+            raise ApiError(403, "This account cannot access that portal.")
+        csrf = secrets.token_urlsafe(32)
+        token = secrets.token_urlsafe(32)
+        with get_db() as connection:
+            self.create_session(connection, token, csrf, row["id"])
+        return 200, {"user": safe_user(row), "csrf": csrf}, self.session_cookie(token)
 
     def create_session(self, connection, token, csrf, user_id):
         token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
@@ -523,7 +881,10 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
         )
 
     def session_cookie_value(self, token, max_age=SESSION_DAYS * 24 * 60 * 60):
-        return f"{SESSION_COOKIE}={token}; Path=/; HttpOnly; SameSite=Strict; Max-Age={max_age}"
+        value = f"{SESSION_COOKIE}={token}; Path=/; HttpOnly; SameSite=Strict; Max-Age={max_age}"
+        if SECURE_COOKIES:
+            value += "; Secure"
+        return value
 
     def session_cookie(self, token):
         return [("Set-Cookie", self.session_cookie_value(token))]
@@ -545,12 +906,13 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
         latitude = safe_coordinate(data.get("latitude"), -90, 90)
         longitude = safe_coordinate(data.get("longitude"), -180, 180)
         with get_db() as connection:
-            cursor = connection.execute(
-                """INSERT INTO jobs(reference,customer_name,customer_phone,issue,vehicle,location,latitude,longitude,message,payment,status,created_at)
-                   VALUES(?,?,?,?,?,?,?,?,?,?,'open',?)""",
+            job_id = insert_id(
+                connection,
+                """INSERT INTO jobs(reference,customer_name,customer_phone,issue,vehicle,location,latitude,longitude,message,payment,status,payment_status,created_at)
+                   VALUES(?,?,?,?,?,?,?,?,?,?,'open','pending',?)""",
                 (reference, name, phone, issue, vehicle or "Not provided", location, latitude, longitude, message, payment or "UPI on-site", now_iso()),
             )
-        return 201, {"reference": reference, "id": cursor.lastrowid, "status": "open"}, []
+        return 201, {"reference": reference, "id": job_id, "status": "open"}, []
 
     def admin_dashboard(self):
         with get_db() as connection:
@@ -711,11 +1073,12 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
             self.send_json(status, result, headers)
         except ApiError as error:
             self.send_json(error.status, {"error": error.message})
-        except sqlite3.IntegrityError:
-            self.send_json(409, {"error": "That record already exists or conflicts with current data."})
-        except Exception:
-            self.log_error("Unexpected API error on %s", path)
-            self.send_json(500, {"error": "An unexpected server error occurred."})
+        except Exception as error:
+            if "Integrity" in type(error).__name__ or "UniqueViolation" in type(error).__name__:
+                self.send_json(409, {"error": "That record already exists or conflicts with current data."})
+            else:
+                self.log_error("Unexpected API error on %s", path)
+                self.send_json(500, {"error": "An unexpected server error occurred."})
 
 
 def clean(value, limit):
@@ -734,11 +1097,12 @@ def safe_coordinate(value, minimum, maximum):
 
 def main():
     init_db()
-    host = os.environ.get("ROADRESCUE_HOST", "127.0.0.1")
-    port = int(os.environ.get("ROADRESCUE_PORT", "8000"))
+    host = os.environ.get("ROADRESCUE_HOST", "0.0.0.0" if os.environ.get("PORT") else "127.0.0.1")
+    port = int(os.environ.get("PORT", os.environ.get("ROADRESCUE_PORT", "8000")))
     server = ThreadingHTTPServer((host, port), RoadRescueHandler)
     print(f"RoadRescue app running at http://{host}:{port}")
     print(f"Local database: {DATABASE}")
+    print(f"Permanent admin login: {PERMANENT_ADMIN_EMAIL} or {PERMANENT_ADMIN_NAME} / {PERMANENT_ADMIN_PASSWORD}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
