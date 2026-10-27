@@ -57,7 +57,7 @@ class DBConnection:
         self.raw = raw
 
     def _convert(self, sql):
-        if isinstance(sql, str) and "?" in sql:
+        if is_postgres() and isinstance(sql, str) and "?" in sql:
             return sql.replace("?", "%s")
         return sql
 
@@ -87,6 +87,9 @@ class DBConnection:
 
 
 def hybrid_row_factory(cursor):
+    if cursor.description is None:
+        return lambda values: None
+
     fields = [column.name for column in cursor.description]
 
     class HybridRow(dict):
@@ -412,8 +415,10 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
                     )
                     self.create_session(connection, token, csrf, vendor_id)
                     user = safe_user(connection.execute("SELECT * FROM users WHERE id=?", (vendor_id,)).fetchone())
-            except sqlite3.IntegrityError:
-                raise ApiError(409, "An account already uses that email address.")
+            except Exception as exc:
+                if "Integrity" in type(exc).__name__ or "UniqueViolation" in type(exc).__name__ or "unique" in str(exc).lower():
+                    raise ApiError(409, "An account already uses that email address.")
+                raise
             return 201, {"user": user, "csrf": csrf}, self.session_cookie(token)
 
         if method == "POST" and path == "/api/login":
@@ -476,7 +481,7 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
                            FROM reviews GROUP BY workshop_id
                        ) r ON r.workshop_id=w.id
                        WHERE w.listing_enabled=1 AND u.status='approved' AND s.status='active' AND s.ends_at>?
-                       GROUP BY w.id ORDER BY w.city,w.business_name""",
+                       GROUP BY w.id, w.vendor_id, w.business_name, w.description, w.phone, w.city, w.address, w.services, r.average_rating, r.review_count ORDER BY w.city,w.business_name""",
                     (now_iso(),),
                 ).fetchall()
             return 200, {"workshops": [dict(row) for row in rows]}, []
@@ -672,7 +677,7 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
                            FROM reviews GROUP BY workshop_id
                        ) r ON r.workshop_id=w.id
                        WHERE w.listing_enabled=1 AND u.status='approved' AND s.status='active' AND s.ends_at>?
-                       GROUP BY w.id ORDER BY w.city,w.business_name""",
+                       GROUP BY w.id, w.vendor_id, w.business_name, w.description, w.phone, w.city, w.address, w.services, r.average_rating, r.review_count ORDER BY w.city,w.business_name""",
                     (now_iso(),),
                 ).fetchall()
             return 200, {"workshops": [dict(row) for row in rows]}, []
@@ -940,7 +945,7 @@ class RoadRescueHandler(SimpleHTTPRequestHandler):
             ).fetchall()
             clients = connection.execute(
                 """SELECT customer_phone,MAX(customer_name) AS customer_name,COUNT(*) AS request_count,
-                          MAX(created_at) AS last_request,GROUP_CONCAT(DISTINCT issue) AS services
+                          MAX(created_at) AS last_request,""" + ("STRING_AGG(DISTINCT issue, ', ')" if is_postgres() else "GROUP_CONCAT(DISTINCT issue)") + """ AS services
                    FROM jobs GROUP BY customer_phone ORDER BY last_request DESC"""
             ).fetchall()
             counts = {
